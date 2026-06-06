@@ -34,6 +34,7 @@ from superset.commands.dashboard.exceptions import (
     DashboardUpdateFailedError,
 )
 from superset.daos.base import BaseDAO, ColumnOperator, ColumnOperatorEnum
+from superset.daos.favorites import FavoritesMixin
 from superset.dashboards.filters import DashboardAccessFilter, is_uuid
 from superset.exceptions import SupersetSecurityException
 from superset.extensions import db
@@ -57,8 +58,9 @@ DASHBOARD_CUSTOM_FIELDS = {
 }
 
 
-class DashboardDAO(BaseDAO[Dashboard]):
+class DashboardDAO(BaseDAO[Dashboard], FavoritesMixin):
     base_filter = DashboardAccessFilter
+    fav_star_class_name = FavStarClassName.DASHBOARD
     # Column used by MCP tools for title-based identifier fallback, so a
     # slug-like identifier can resolve to a dashboard even when its slug
     # field is empty.
@@ -350,20 +352,6 @@ class DashboardDAO(BaseDAO[Dashboard]):
         md["cross_filters_enabled"] = data.get("cross_filters_enabled", True)
         dashboard.json_metadata = json.dumps(md)
 
-    @staticmethod
-    def favorited_ids(dashboards: list[Dashboard]) -> list[FavStar]:
-        ids = [dash.id for dash in dashboards]
-        return [
-            star.obj_id
-            for star in db.session.query(FavStar.obj_id)
-            .filter(
-                FavStar.class_name == FavStarClassName.DASHBOARD,
-                FavStar.obj_id.in_(ids),
-                FavStar.user_id == get_user_id(),
-            )
-            .all()
-        ]
-
     @classmethod
     def copy_dashboard(
         cls, original_dash: Dashboard, data: dict[str, Any]
@@ -573,33 +561,6 @@ class DashboardDAO(BaseDAO[Dashboard]):
                 metadata[key] = attributes[key]
 
         dashboard.json_metadata = json.dumps(metadata)
-
-    @staticmethod
-    def add_favorite(dashboard: Dashboard) -> None:
-        ids = DashboardDAO.favorited_ids([dashboard])
-        if dashboard.id not in ids:
-            db.session.add(
-                FavStar(
-                    class_name=FavStarClassName.DASHBOARD,
-                    obj_id=dashboard.id,
-                    user_id=get_user_id(),
-                    dttm=datetime.now(),
-                )
-            )
-
-    @staticmethod
-    def remove_favorite(dashboard: Dashboard) -> None:
-        fav = (
-            db.session.query(FavStar)
-            .filter(
-                FavStar.class_name == FavStarClassName.DASHBOARD,
-                FavStar.obj_id == dashboard.id,
-                FavStar.user_id == get_user_id(),
-            )
-            .one_or_none()
-        )
-        if fav:
-            db.session.delete(fav)
 
 
 class EmbeddedDashboardDAO(BaseDAO[EmbeddedDashboard]):
