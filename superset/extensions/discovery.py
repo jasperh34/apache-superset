@@ -85,9 +85,9 @@ def discover_and_load_extensions(
                         "Loaded extension '%s' from %s", extension.id, supx_file
                     )
                     yield extension
-            except Exception as e:
-                logger.error("Failed to load extension from %s: %s", supx_file, e)
+            except Exception:
+                logger.exception("Failed to load extension from %s", supx_file)
                 continue
 
-    except Exception as e:
-        logger.error("Error discovering extensions in %s: %s", extensions_path, e)
+    except Exception:
+        logger.exception("Error discovering extensions in %s", extensions_path)

@@ -35,7 +35,8 @@ def _is_local_url(url: str) -> bool:
     try:
         parsed = urlparse(url)
         return parsed.hostname in LOCAL_HOSTNAMES if parsed.hostname else True
-    except Exception:
+    except ValueError:
+        logger.debug("Failed to parse URL for local check: %s", url)
         return True
 
 
@@ -53,7 +54,8 @@ def get_superset_base_url() -> str:
         if user_friendly_url := config["WEBDRIVER_BASEURL_USER_FRIENDLY"]:
             return user_friendly_url.rstrip("/")
         return default_url
-    except Exception:
+    except RuntimeError:
+        # Outside of Flask application context
         return default_url
 
 
@@ -84,8 +86,9 @@ def get_mcp_service_url() -> str:
             base_url = user_friendly_url.rstrip("/")
             return f"{base_url}/mcp"
 
-    except Exception as e:
-        logger.debug("Config access failed: %s", e)
+    except RuntimeError:
+        # Outside of Flask application context
+        pass
 
     # Development fallback - direct access to MCP service on port 5008
     return "http://localhost:5008"
