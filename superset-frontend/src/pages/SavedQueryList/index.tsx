@@ -245,7 +245,11 @@ function SavedQueryList({
         addDangerToast(t('Sorry, your browser does not support copying.'));
       });
     if (openInNewWindow) {
-      window.open(makeUrl(`/sqllab?savedQueryId=${id}`));
+      window.open(
+        makeUrl(`/sqllab?savedQueryId=${id}`),
+        '_blank',
+        'noopener,noreferrer',
+      );
     } else {
       // React Router's basename already includes the application root; passing
       // a relative path ensures correct navigation under subdirectory deployments.
