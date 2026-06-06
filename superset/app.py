@@ -146,7 +146,7 @@ class SupersetApp(Flask):
                 )
             return is_current
         except Exception as e:
-            logger.debug("Could not check migration status: %s", e)
+            logger.warning("Could not check migration status: %s", e)
             return False
 
     def sync_config_to_db(self) -> None:
@@ -183,10 +183,11 @@ class SupersetApp(Flask):
 
             logger.info("Configuration sync to database completed successfully")
 
-        except Exception as e:
-            logger.error("Failed to sync configuration to database: %s", e)
-            # Don't raise the exception to avoid breaking app startup
-            # in multi-tenant environments
+        except Exception:
+            logger.error(
+                "Failed to sync configuration to database",
+                exc_info=True,
+            )
 
 
 class AppRootMiddleware:
