@@ -58,7 +58,7 @@ DASHBOARD_CUSTOM_FIELDS = {
 }
 
 
-class DashboardDAO(FavoritesMixin, BaseDAO[Dashboard]):
+class DashboardDAO(BaseDAO[Dashboard], FavoritesMixin):
     base_filter = DashboardAccessFilter
     fav_star_class_name = FavStarClassName.DASHBOARD
     # Column used by MCP tools for title-based identifier fallback, so a

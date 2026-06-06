@@ -41,7 +41,7 @@ CHART_CUSTOM_FIELDS = {
 }
 
 
-class ChartDAO(FavoritesMixin, BaseDAO[Slice]):
+class ChartDAO(BaseDAO[Slice], FavoritesMixin):
     base_filter = ChartFilter
     fav_star_class_name = FavStarClassName.CHART
 
