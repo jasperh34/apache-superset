@@ -81,7 +81,7 @@ interface QueryTableProps {
 
 const openQuery = (id: number) => {
   const url = makeUrl(`/sqllab?queryId=${id}`);
-  window.open(url);
+  window.open(url, '_blank', 'noopener,noreferrer');
 };
 
 const QueryTable = ({
