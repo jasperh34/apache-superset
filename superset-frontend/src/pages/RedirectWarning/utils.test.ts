@@ -112,6 +112,14 @@ test('isUrlTrusted returns false when localStorage contains a non-array object',
   expect(isUrlTrusted('https://example.com')).toBe(false);
 });
 
+test('trustUrl stores fingerprints, not raw URLs, in localStorage', () => {
+  trustUrl('https://example.com/secret?token=abc123');
+  const stored = localStorage.getItem(TRUSTED_URLS_KEY) ?? '';
+  expect(stored).not.toContain('example.com');
+  expect(stored).not.toContain('token=abc123');
+  expect(isUrlTrusted('https://example.com/secret?token=abc123')).toBe(true);
+});
+
 test('trustUrl caps storage at 100 entries', () => {
   const urls = Array.from({ length: 105 }, (_, i) => `https://example${i}.com`);
   urls.forEach(url => trustUrl(url));
@@ -119,6 +127,6 @@ test('trustUrl caps storage at 100 entries', () => {
     localStorage.getItem(TRUSTED_URLS_KEY) ?? '[]',
   ) as string[];
   expect(stored.length).toBeLessThanOrEqual(100);
-  // The most recent entries should be kept
-  expect(stored).toContain('https://example104.com');
+  // The most recent entries should still be trusted
+  expect(isUrlTrusted('https://example104.com')).toBe(true);
 });
