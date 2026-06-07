@@ -34,6 +34,28 @@ function normalizeUrl(url: string): string {
 }
 
 /**
+ * Produce a one-way numeric fingerprint of a string so that raw URLs
+ * (which may carry tokens or session ids in query parameters) are
+ * never persisted in clear text in localStorage.
+ *
+ * Uses the cyrb53 algorithm — a fast, well-distributed 53-bit hash.
+ */
+function fingerprintUrl(str: string): string {
+  let h1 = 0xdeadbeef;
+  let h2 = 0x41c6ce57;
+  for (let i = 0; i < str.length; i += 1) {
+    const ch = str.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 2654435761);
+    h2 = Math.imul(h2 ^ ch, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507);
+  h1 ^= Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507);
+  h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return (4294967296 * (2097151 & h2) + Math.trunc(h1)).toString(36);
+}
+
+/**
  * Return true if the URL scheme is safe for navigation.
  * Blocks javascript:, data:, vbscript:, file:, etc.
  */
@@ -60,7 +82,7 @@ export function getTargetUrl(): string {
   return url.trim();
 }
 
-function getTrustedUrls(): string[] {
+function getTrustedFingerprints(): string[] {
   try {
     const stored = localStorage.getItem(TRUSTED_URLS_KEY);
     if (!stored) return [];
@@ -71,9 +93,11 @@ function getTrustedUrls(): string[] {
   }
 }
 
-function saveTrustedUrls(urls: string[]): void {
+function saveTrustedFingerprints(fingerprints: string[]): void {
   const limited =
-    urls.length > MAX_TRUSTED_URLS ? urls.slice(-MAX_TRUSTED_URLS) : urls;
+    fingerprints.length > MAX_TRUSTED_URLS
+      ? fingerprints.slice(-MAX_TRUSTED_URLS)
+      : fingerprints;
   try {
     localStorage.setItem(TRUSTED_URLS_KEY, JSON.stringify(limited));
   } catch {
@@ -82,15 +106,15 @@ function saveTrustedUrls(urls: string[]): void {
 }
 
 export function isUrlTrusted(url: string): boolean {
-  const normalized = normalizeUrl(url);
-  return getTrustedUrls().some(t => normalizeUrl(t) === normalized);
+  const fp = fingerprintUrl(normalizeUrl(url));
+  return getTrustedFingerprints().includes(fp);
 }
 
 export function trustUrl(url: string): void {
-  const normalized = normalizeUrl(url);
-  const trusted = getTrustedUrls();
-  if (!trusted.some(t => normalizeUrl(t) === normalized)) {
-    trusted.push(url);
-    saveTrustedUrls(trusted);
+  const fp = fingerprintUrl(normalizeUrl(url));
+  const trusted = getTrustedFingerprints();
+  if (!trusted.includes(fp)) {
+    trusted.push(fp);
+    saveTrustedFingerprints(trusted);
   }
 }
