@@ -36,3 +36,7 @@ The Developer Portal includes comprehensive guides for:
 - [Development How-tos](https://superset.apache.org/developer_portal/contributing/howtos)
 
 Source for the Developer Portal documentation is [located here](https://github.com/apache/superset/tree/master/docs/developer_portal).
+
+## Automated Issue Remediation with Devin
+
+Issues labelled **`devin`** may be automatically routed to [Devin](https://devin.ai/), an autonomous AI software engineering agent. When a `devin`-labelled issue is picked up, Devin will open a pull request with a proposed fix for maintainer review. These pull requests follow the same review and merge process as any other contribution.
