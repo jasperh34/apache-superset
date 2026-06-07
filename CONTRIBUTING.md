@@ -36,3 +36,8 @@ The Developer Portal includes comprehensive guides for:
 - [Development How-tos](https://superset.apache.org/developer_portal/contributing/howtos)
 
 Source for the Developer Portal documentation is [located here](https://github.com/apache/superset/tree/master/docs/developer_portal).
+
+## Local Automation Demo (Fork-Specific)
+
+> **Note:** This fork is used to demonstrate a local Devin API automation workflow.
+> This workflow is specific to this fork and is **not** part of upstream Apache Superset.
